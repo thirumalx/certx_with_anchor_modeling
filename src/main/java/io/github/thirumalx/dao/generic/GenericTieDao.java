@@ -2,12 +2,10 @@ package io.github.thirumalx.dao.generic;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 
 import io.github.thirumalx.model.Tie;
 
@@ -16,7 +14,7 @@ import io.github.thirumalx.model.Tie;
  * Tie tables usually contain only foreign keys referencing two anchor tables to establish a many-to-many relationship. 
  */
 public abstract class GenericTieDao<T extends Tie> {
-    
+
     private final JdbcClient jdbc;
     private final String tableName;
     private final String[] columns;
@@ -27,8 +25,14 @@ public abstract class GenericTieDao<T extends Tie> {
         this.columns = columns;
     }
 
-    public Long insert(Object... values) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+    public boolean insert(Object... values) {
+
+        if (values.length != columns.length) {
+            throw new IllegalArgumentException(
+                "Expected " + columns.length + " values, but got " + values.length
+            );
+        }
+
         String cols = String.join(",", columns);
         String params = Arrays.stream(columns)
                               .map(c -> ":" + c)
@@ -41,16 +45,17 @@ public abstract class GenericTieDao<T extends Tie> {
         for (int i = 0; i < columns.length; i++) {
             query = query.param(columns[i], values[i]);
         }
-        query.update();
-        Number key = keyHolder.getKey();
-        return key != null ? key.longValue() : null;
+
+        return query.update() > 0;
     }
 
-    public List<Map<String, Object>> findByColumn(String column, Object value) {
+    public List<T> findByColumn(String column, Object value) {
         return jdbc.sql("SELECT * FROM " + tableName +
                         " WHERE " + column + " = :val")
                 .param("val", value)
-                .query()
-                .listOfRows();
+                .query(rowMapper())
+                .list();
     }
+
+    protected abstract RowMapper<T> rowMapper();
 }

@@ -2,6 +2,7 @@ package io.github.thirumalx.dao.generic;
 
 import java.util.List;
 
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -15,13 +16,11 @@ public abstract class GenericAttributeDao<T> {
     private final JdbcClient jdbc;
     private final String tableName;
     private final String fkColumn;
-    private final Class<T> type;
 
-    protected GenericAttributeDao(JdbcClient jdbc, String tableName, String fkColumn, Class<T> type) {
+    protected GenericAttributeDao(JdbcClient jdbc, String tableName, String fkColumn) {
         this.jdbc = jdbc;
         this.tableName = tableName;
         this.fkColumn = fkColumn;
-        this.type = type;
     }
 
     public Long insert(Long anchorId, String value) {
@@ -30,7 +29,7 @@ public abstract class GenericAttributeDao<T> {
                  "(" + fkColumn + ", value) VALUES (:id, :value)")
             .param("id", anchorId)
             .param("value", value)
-            .update();
+            .update(keyHolder);
         Number key = keyHolder.getKey();
         return key != null ? key.longValue() : null;
     }
@@ -39,7 +38,9 @@ public abstract class GenericAttributeDao<T> {
         return jdbc.sql("SELECT * FROM " + tableName +
                         " WHERE " + fkColumn + " = :id")
                 .param("id", anchorId)
-                .query(type)
+                .query(rowMapper())
                 .list();
     }
+
+    protected abstract RowMapper<T> rowMapper();
 }

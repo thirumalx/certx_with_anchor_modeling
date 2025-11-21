@@ -5,6 +5,7 @@ package io.github.thirumalx.dao.generic;
 
 import java.util.Optional;
 
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -19,14 +20,12 @@ public abstract class GenericAnchorDao<T extends Anchor> {
 
 	private final JdbcClient jdbc;
 	private final String tableName;
-	private final Class<T> type;
 	private final String idColumn;
 
-	protected GenericAnchorDao(JdbcClient jdbc, String tableName, String idColumn, Class<T> type) {
+	protected GenericAnchorDao(JdbcClient jdbc, String tableName, String idColumn) {
 		this.jdbc = jdbc;
 		this.tableName = tableName;
 		this.idColumn = idColumn;
-		this.type = type;
 	}
 
 	public Long insert() {
@@ -37,8 +36,10 @@ public abstract class GenericAnchorDao<T extends Anchor> {
 	}
 
 	public Optional<T> findById(Long id) {
-		return jdbc.sql("SELECT * FROM " + tableName + " WHERE " + idColumn + " = :id").param("id", id).query(type)
+		return jdbc.sql("SELECT * FROM " + tableName + " WHERE " + idColumn + " = :id").param("id", id).query(rowMapper())
 				.optional();
 	}
+
+	protected abstract RowMapper<T> rowMapper();
 
 }
