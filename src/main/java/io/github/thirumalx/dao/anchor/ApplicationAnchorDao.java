@@ -13,7 +13,7 @@ import io.github.thirumalx.model.anchor.ApplicationAnchor;
 public class ApplicationAnchorDao extends AnchorDao<ApplicationAnchor> {
 
     protected ApplicationAnchorDao(JdbcClient jdbc) {
-        super(jdbc, "certx.ap_application", "ap_id");
+        super(jdbc, "certx.ap_application", "ap_id", "metadata_ap");
     }
 
     @Override

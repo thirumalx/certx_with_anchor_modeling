@@ -21,17 +21,19 @@ public abstract class AnchorDao<T extends Anchor> {
 	private final JdbcClient jdbc;
 	private final String tableName;
 	private final String idColumn;
+	private final String metadataColumn;
 
-	protected AnchorDao(JdbcClient jdbc, String tableName, String idColumn) {
+	protected AnchorDao(JdbcClient jdbc, String tableName, String idColumn, String metadataColumn) {
 		this.jdbc = jdbc;
 		this.tableName = tableName;
 		this.idColumn = idColumn;
+		this.metadataColumn = metadataColumn;
 	}
 
-	public Long insert() {
+	public Long insert(Long metadata) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
-		jdbc.sql("INSERT INTO " + tableName + " (metadata_ap) VALUES (:metadata) RETURNING " + idColumn)
-			.param("metadata", 1)
+		jdbc.sql("INSERT INTO " + tableName + " (" + metadataColumn + ") VALUES (:metadata) RETURNING " + idColumn)
+			.param("metadata", metadata)
 			.update(keyHolder);
 
 		Number key = keyHolder.getKey();

@@ -16,19 +16,25 @@ public abstract class AttributeDao<T> {
     private final JdbcClient jdbc;
     private final String tableName;
     private final String fkColumn;
+    private final String valueColumn;
+    private final String metadataColumn;
 
-    protected AttributeDao(JdbcClient jdbc, String tableName, String fkColumn) {
+    protected AttributeDao(JdbcClient jdbc, String tableName, String fkColumn, String valueColumn, String metadataColumn) {
         this.jdbc = jdbc;
         this.tableName = tableName;
         this.fkColumn = fkColumn;
+        this.valueColumn = valueColumn;
+        this.metadataColumn = metadataColumn;
     }
 
-    public Long insert(Long anchorId, String value) {
+    public Long insert(Long anchorId, String value, Long metadata) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.sql("INSERT INTO " + tableName + 
-                 "(" + fkColumn + ", value) VALUES (:id, :value)")
+                 "(" + fkColumn + ", " + valueColumn + ", " + metadataColumn 
+                 + ") VALUES (:id, :value, :metadata) RETURNING " + fkColumn)
             .param("id", anchorId)
             .param("value", value)
+            .param("metadata", metadata)
             .update(keyHolder);
         Number key = keyHolder.getKey();
         return key != null ? key.longValue() : null;

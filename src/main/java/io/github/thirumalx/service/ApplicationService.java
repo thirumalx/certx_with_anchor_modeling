@@ -8,8 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.thirumalx.dao.anchor.ApplicationAnchorDao;
+import io.github.thirumalx.dao.attribute.ApplicationNameAttributeDao;
 import io.github.thirumalx.dto.Application;
+import io.github.thirumalx.model.Anchor;
+import io.github.thirumalx.model.Attribute;
 import io.github.thirumalx.model.anchor.ApplicationAnchor;
+import io.github.thirumalx.model.attribute.ApplicationNameAttribute;
 
 /**
  * @author Thirumal
@@ -20,19 +24,27 @@ public class ApplicationService {
     Logger logger = LoggerFactory.getLogger(ApplicationService.class);
     
     private final ApplicationAnchorDao applicationAnchorDao;
+    private final ApplicationNameAttributeDao applicationNameAttributeDao;
 
-    public ApplicationService(ApplicationAnchorDao applicationAnchorDao) {
+    public ApplicationService(ApplicationAnchorDao applicationAnchorDao, ApplicationNameAttributeDao applicationNameAttributeDao) {
         this.applicationAnchorDao = applicationAnchorDao;
+        this.applicationNameAttributeDao = applicationNameAttributeDao;
     }
 
     @Transactional
     public Application save(Application application) {
         logger.info("Saving application: {}", application);
         //Create Applicaiton Anchor
-        Long applicationId = applicationAnchorDao.insert();
+        Long applicationId = applicationAnchorDao.insert(Anchor.METADATA_ACTIVE);
         logger.info("Created application anchor with ID: {}", applicationId);
         application.setId(applicationId);
         //Add Name
+        Long applicationNameAttributeId = applicationNameAttributeDao.insert(
+            applicationId,
+            application.getApplicationName(),
+            Attribute.METADATA_ACTIVE
+        );
+        logger.info("Added application name attribute with ID: {}", applicationNameAttributeId);
         return application;
     }
 
