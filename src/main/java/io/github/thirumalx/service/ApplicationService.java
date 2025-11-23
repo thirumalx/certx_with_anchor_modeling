@@ -1,6 +1,7 @@
 package io.github.thirumalx.service;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.LoggerFactory;
@@ -40,13 +41,14 @@ public class ApplicationService {
         logger.info("Created application anchor with ID: {}", applicationId);
         application.setId(applicationId);
         //Add Name
-        Long applicationNameAttributeId = applicationNameAttributeDao.insert(
+        Map<String, Object> applicationNameAttributeId = applicationNameAttributeDao.insert(
             applicationId,
             application.getApplicationName(),
             Instant.now(),
             Attribute.METADATA_ACTIVE
         );
-        logger.info("Added application name attribute with ID: {}", applicationNameAttributeId);
+        logger.info("Added application name attribute with ID: {}",
+             applicationNameAttributeId.entrySet().stream().toList());
         return application;
     }
 

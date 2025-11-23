@@ -2,9 +2,12 @@ package io.github.thirumalx.dao;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 /**
  * @author Thirumal M
@@ -32,31 +35,38 @@ public abstract class AttributeDao<T> {
         this.metadataColumn = metadataColumn;
     }
 
-    public Long insert(Long anchorId, String value, Long metadata) {
+    // ------------------------------------------------
+    // INSERT SIMPLE ATTRIBUTE (non-historized)
+    // ------------------------------------------------
+    public Map<String, Object> insert(Long anchorId, String value, Long metadata) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.sql("INSERT INTO " + tableName + 
                  "(" + fkColumn + ", " + valueColumn + ", " + metadataColumn 
-                 + ") VALUES (:id, :value, :metadata)")
+                 + ") VALUES (:id, :value, :metadata) RETURNING " + fkColumn + "," + metadataColumn)
             .param("id", anchorId)
             .param("value", value)
             .param("metadata", metadata)
-            .update();
-        return anchorId;
+            .update(keyHolder);        
+        return keyHolder.getKeys(); // returns multiple keys
     }
 
-    /** Historized Attribute */
-    public Long insert(Long anchorId, String value, Instant changedAt, Long metadata) {
+    // ------------------------------------------------
+    // INSERT HISTORIZED ATTRIBUTE
+    // ------------------------------------------------
+    public Map<String, Object> insert(Long anchorId, String value, Instant changedAt, Long metadata) {
         if (changedAtColumn == null) {
             throw new IllegalStateException("This attribute is not historized.");
         }
+        KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.sql("INSERT INTO " + tableName + 
                  "(" + fkColumn + ", " + valueColumn + ", " + changedAtColumn + ", " + metadataColumn 
-                 + ") VALUES (:id, :value, :changedAt, :metadata)")
+                 + ") VALUES (:id, :value, :changedAt, :metadata) RETURNING " + fkColumn + ", " + changedAtColumn)
             .param("id", anchorId)
             .param("value", value)
             .param("changedAt", java.sql.Timestamp.from(changedAt))
             .param("metadata", metadata)
-            .update();
-        return anchorId;
+            .update(keyHolder);
+        return keyHolder.getKeys();  // <-- contains BOTH PK columns
     }
 
     public List<T> findByAnchorId(Long anchorId) {
