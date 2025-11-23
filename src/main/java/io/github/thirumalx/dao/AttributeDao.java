@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 
 /**
  * @author Thirumal M
@@ -37,10 +35,11 @@ public abstract class AttributeDao<T> {
     public Long insert(Long anchorId, String value, Long metadata) {
         jdbc.sql("INSERT INTO " + tableName + 
                  "(" + fkColumn + ", " + valueColumn + ", " + metadataColumn 
-                 + ") VALUES (:id, :value, :metadata) RETURNING " + fkColumn)
+                 + ") VALUES (:id, :value, :metadata)")
             .param("id", anchorId)
             .param("value", value)
-            .param("metadata", metadata);
+            .param("metadata", metadata)
+            .update();
         return anchorId;
     }
 
@@ -51,11 +50,12 @@ public abstract class AttributeDao<T> {
         }
         jdbc.sql("INSERT INTO " + tableName + 
                  "(" + fkColumn + ", " + valueColumn + ", " + changedAtColumn + ", " + metadataColumn 
-                 + ") VALUES (:id, :value, :changedAt, :metadata) RETURNING " + fkColumn)
+                 + ") VALUES (:id, :value, :changedAt, :metadata)")
             .param("id", anchorId)
             .param("value", value)
-            .param("changedAt", changedAt)
-            .param("metadata", metadata);
+            .param("changedAt", java.sql.Timestamp.from(changedAt))
+            .param("metadata", metadata)
+            .update();
         return anchorId;
     }
 
