@@ -15,7 +15,6 @@ import io.github.thirumalx.dto.Application;
 import io.github.thirumalx.model.Anchor;
 import io.github.thirumalx.model.Attribute;
 import io.github.thirumalx.model.anchor.ApplicationAnchor;
-import io.github.thirumalx.model.attribute.ApplicationNameAttribute;
 
 /**
  * @author Thirumal
