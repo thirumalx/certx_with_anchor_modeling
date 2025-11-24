@@ -23,11 +23,12 @@ import io.github.thirumalx.model.anchor.ApplicationAnchor;
 public class ApplicationService {
 
     Logger logger = LoggerFactory.getLogger(ApplicationService.class);
-    
+
     private final ApplicationAnchorDao applicationAnchorDao;
     private final ApplicationNameAttributeDao applicationNameAttributeDao;
 
-    public ApplicationService(ApplicationAnchorDao applicationAnchorDao, ApplicationNameAttributeDao applicationNameAttributeDao) {
+    public ApplicationService(ApplicationAnchorDao applicationAnchorDao,
+            ApplicationNameAttributeDao applicationNameAttributeDao) {
         this.applicationAnchorDao = applicationAnchorDao;
         this.applicationNameAttributeDao = applicationNameAttributeDao;
     }
@@ -35,19 +36,19 @@ public class ApplicationService {
     @Transactional
     public Application save(Application application) {
         logger.info("Saving application: {}", application);
-        //Create Applicaiton Anchor
+        // TODO Validate application name
+        // Create Applicaiton Anchor
         Long applicationId = applicationAnchorDao.insert(Anchor.METADATA_ACTIVE);
         logger.info("Created application anchor with ID: {}", applicationId);
         application.setId(applicationId);
-        //Add Name
+        // Add Name
         Map<String, Object> applicationNameAttributeId = applicationNameAttributeDao.insert(
-            applicationId,
-            application.getApplicationName(),
-            Instant.now(),
-            Attribute.METADATA_ACTIVE
-        );
+                applicationId,
+                application.getApplicationName(),
+                Instant.now(),
+                Attribute.METADATA_ACTIVE);
         logger.info("Added application name attribute with ID: {}",
-             applicationNameAttributeId.entrySet().stream().toList());
+                applicationNameAttributeId.entrySet().stream().toList());
         return application;
     }
 
@@ -56,7 +57,7 @@ public class ApplicationService {
         Optional<ApplicationAnchor> applicationAnchor = applicationAnchorDao.findById(id);
         if (applicationAnchor.isEmpty()) {
             logger.debug("Application with ID: {} not found", id);
-            return null;    
+            return null;
         }
         return Application.builder().id(applicationAnchor.get().getId()).build();
     }
