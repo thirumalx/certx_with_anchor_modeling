@@ -85,3 +85,8 @@ src/main/java
     └── tie/
 
 
+## Command to check the certificate validity,..
+
+```shell
+certutil -dump certificate.pfx
+```
