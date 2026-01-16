@@ -3,15 +3,18 @@ package io.github.thirumalx.controller;
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import io.github.thirumalx.dto.Application;
+import io.github.thirumalx.dto.PageRequest;
+import io.github.thirumalx.dto.PageResponse;
 import io.github.thirumalx.service.ApplicationService;
 import jakarta.validation.Valid;
 
@@ -42,10 +45,23 @@ public class ApplicationController {
 
         return ResponseEntity.created(location).body(saved);
     }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<Application> updateApplication(@PathVariable Long id, @Valid @RequestBody Application application) {
+        // Save using service
+        Application updatedApplication = applicationService.update(id, application);
+        return ResponseEntity.ok(updatedApplication);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Application> getApplication(@PathVariable Long id) {
         return ResponseEntity.ok(applicationService.getApplication(id));
+    }
+    
+
+    @GetMapping("")
+    public ResponseEntity<PageResponse<Application>> listApplication(@Valid PageRequest pageRequest) {
+        return ResponseEntity.ok(applicationService.listApplication(pageRequest));
     }
     
 }

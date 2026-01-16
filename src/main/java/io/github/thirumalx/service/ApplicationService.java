@@ -1,11 +1,13 @@
 package io.github.thirumalx.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +15,12 @@ import io.github.thirumalx.dao.anchor.ApplicationAnchorDao;
 import io.github.thirumalx.dao.attribute.ApplicationNameAttributeDao;
 import io.github.thirumalx.dao.attribute.ApplicationUniqueIdAttributeDao;
 import io.github.thirumalx.dto.Application;
+import io.github.thirumalx.dto.PageRequest;
+import io.github.thirumalx.dto.PageResponse;
 import io.github.thirumalx.model.Anchor;
 import io.github.thirumalx.model.Attribute;
 import io.github.thirumalx.model.anchor.ApplicationAnchor;
+import jakarta.validation.Valid;
 
 /**
  * @author Thirumal
@@ -54,15 +59,27 @@ public class ApplicationService {
                 applicationNameAttributeId.entrySet().stream().toList());
         // Add UniqueId
         if (application.getUniqueId() != null) {
-            Map<String, Object> applicationUniqueIdAttributeId = applicationUniqueIdAttributeDao.insert(
-                    applicationId,
-                    application.getUniqueId(),
-                    Attribute.METADATA_ACTIVE);
-            logger.info("Added application uniqueId attribute with ID: {}",
-                    applicationUniqueIdAttributeId.entrySet().stream().toList());
+        	try {
+	            Map<String, Object> applicationUniqueIdAttributeId = applicationUniqueIdAttributeDao.insert(
+	                    applicationId,
+	                    application.getUniqueId(),
+	                    Attribute.METADATA_ACTIVE);
+	            logger.info("Added application uniqueId attribute with ID: {}",
+	                    applicationUniqueIdAttributeId.entrySet().stream().toList());
+        	} catch (DuplicateKeyException duplicateKeyException) {
+        		throw new io.github.thirumalx.exception.DuplicateKeyException("Application ID must be unique...");
+        	}
+            
         }
         return application;
     }
+    
+    @Transactional
+	public Application update(Long id, @Valid Application application) {
+		logger.debug("Initiated Updating application {} with details {}", id, application);
+		
+		return getApplication(id);
+	}
 
     public Application getApplication(Long id) {
         logger.info("Fetching application with ID: {}", id);
@@ -73,4 +90,12 @@ public class ApplicationService {
         }
         return Application.builder().id(applicationAnchor.get().getId()).build();
     }
+
+	public PageResponse<Application> listApplication(PageRequest pageRequest) {
+		logger.debug("List application from the page {} to offset {}", pageRequest.page(), pageRequest.size());
+		
+		return null;
+	}
+
+
 }
