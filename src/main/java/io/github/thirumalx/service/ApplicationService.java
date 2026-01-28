@@ -15,12 +15,14 @@ import io.github.thirumalx.dao.anchor.ApplicationAnchorDao;
 import io.github.thirumalx.dao.attribute.ApplicationNameAttributeDao;
 import io.github.thirumalx.dao.attribute.ApplicationUniqueIdAttributeDao;
 import io.github.thirumalx.dao.view.ApplicationViewDao;
+import io.github.thirumalx.dao.attribute.ApplicationStatusAttributeDao;
 import io.github.thirumalx.dto.Application;
 import io.github.thirumalx.dto.PageRequest;
 import io.github.thirumalx.dto.PageResponse;
 import io.github.thirumalx.exception.ResourceNotFoundException;
 import io.github.thirumalx.model.Anchor;
 import io.github.thirumalx.model.Attribute;
+import io.github.thirumalx.model.Knot;
 import jakarta.validation.Valid;
 
 /**
@@ -35,15 +37,18 @@ public class ApplicationService {
     private final ApplicationNameAttributeDao applicationNameAttributeDao;
     private final ApplicationUniqueIdAttributeDao applicationUniqueIdAttributeDao;
     private final ApplicationViewDao applicationViewDao;
+    private final ApplicationStatusAttributeDao applicationStatusAttributeDao;
 
     public ApplicationService(ApplicationAnchorDao applicationAnchorDao,
             ApplicationNameAttributeDao applicationNameAttributeDao,
             ApplicationUniqueIdAttributeDao applicationUniqueIdAttributeDao,
-            ApplicationViewDao applicationViewDao) {
+            ApplicationViewDao applicationViewDao,
+            ApplicationStatusAttributeDao applicationStatusAttributeDao) {
         this.applicationAnchorDao = applicationAnchorDao;
         this.applicationNameAttributeDao = applicationNameAttributeDao;
         this.applicationUniqueIdAttributeDao = applicationUniqueIdAttributeDao;
         this.applicationViewDao = applicationViewDao;
+        this.applicationStatusAttributeDao = applicationStatusAttributeDao;
     }
 
     @Transactional
@@ -75,6 +80,8 @@ public class ApplicationService {
             }
 
         }
+        // Add Status (Active)
+        applicationStatusAttributeDao.insert(applicationId, Knot.ACTIVE, Instant.now(), Attribute.METADATA_ACTIVE);
         return application;
     }
 
@@ -128,21 +135,28 @@ public class ApplicationService {
 
     public PageResponse<Application> listApplication(PageRequest pageRequest) {
         logger.debug("Listing applications for page {} with size {}", pageRequest.page(), pageRequest.size());
-        List<Application> applications = applicationViewDao.listNow(pageRequest.page(), pageRequest.size());
-        long totalElements = applicationViewDao.countNow();
+        List<Application> applications = applicationViewDao.listNow(Knot.ACTIVE, pageRequest.page(),
+                pageRequest.size());
+        long totalElements = applicationViewDao.countNow(Knot.ACTIVE);
         int totalPages = (int) Math.ceil((double) totalElements / pageRequest.size());
         return new PageResponse<>(pageRequest.page(), pageRequest.size(), applications, totalElements, totalPages);
     }
 
-    public void deleteApplication(Long id) {
+    public boolean deleteApplication(Long id) {
         logger.info("Deleting application with ID: {}", id);
         Application existingApplication = getApplication(id);
         if (existingApplication == null) {
             logger.debug("Application with ID: {} not found for deletion", id);
             throw new ResourceNotFoundException("Application not found for deletion");
         }
-        applicationAnchorDao.delete(id);
-        logger.info("Deleted application with ID: {}", id);
+        Map<String, Object> rowsAffected = applicationStatusAttributeDao.insert(
+                id,
+                io.github.thirumalx.model.Knot.DELETED,
+                Instant.now(),
+                Attribute.METADATA_ACTIVE);
+        logger.info("Deleted application with ID: {}", rowsAffected.entrySet().stream().toList());
+
+        return true;
     }
 
 }

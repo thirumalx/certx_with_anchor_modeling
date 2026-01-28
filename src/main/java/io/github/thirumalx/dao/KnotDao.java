@@ -8,15 +8,18 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
 import io.github.thirumalx.model.Knot;
+
 /**
  * @author Thirumal
- * Knot tables usually contain the knot ID (auto-generated PK), knot value, and optionally other metadata.
- * Used for managing static reference data shared across multiple entities.
- * Example: Status, Category, Type, etc.
+ *         Knot tables usually contain the knot ID (auto-generated PK), knot
+ *         value, and optionally other metadata.
+ *         Used for managing static reference data shared across multiple
+ *         entities.
+ *         Example: Status, Category, Type, etc.
  */
-public abstract class KnotDao <T extends Knot> {
-    
-    private final JdbcClient jdbc;
+public abstract class KnotDao<T extends Knot<Long>> {
+
+	private final JdbcClient jdbc;
 	private final String tableName;
 	private final String idColumn;
 	private final String metadataColumn;
@@ -31,15 +34,16 @@ public abstract class KnotDao <T extends Knot> {
 	public Long insert(Long metadata) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		jdbc.sql("INSERT INTO " + tableName + " (" + metadataColumn + ") VALUES (:metadata) RETURNING " + idColumn)
-			.param("metadata", metadata)
-			.update(keyHolder);
+				.param("metadata", metadata)
+				.update(keyHolder);
 
 		Number key = keyHolder.getKey();
 		return key != null ? key.longValue() : null;
 	}
 
 	public Optional<T> findById(Long id) {
-		return jdbc.sql("SELECT * FROM " + tableName + " WHERE " + idColumn + " = :id").param("id", id).query(rowMapper())
+		return jdbc.sql("SELECT * FROM " + tableName + " WHERE " + idColumn + " = :id").param("id", id)
+				.query(rowMapper())
 				.optional();
 	}
 

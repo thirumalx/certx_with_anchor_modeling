@@ -1,13 +1,18 @@
 package io.github.thirumalx.model;
+
 /**
  * @author Thirumal
- * A knot represents a finite set of values used to describe states of entities or relationships.
+ *         A knot represents a finite set of values used to describe states of
+ *         entities or relationships.
  */
-public interface Knot {
-    
+public sealed interface Knot<T> permits SimpleKnot, HistorizedKnot {
+
     public static final Long DELETED = 0L;
-    
+    public static final Long ACTIVE = 1L;
+
     Long getId();
+
     String description();
+
     Long getMetadata();
 }

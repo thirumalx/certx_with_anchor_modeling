@@ -3,6 +3,7 @@ package io.github.thirumalx.controller;
 import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,14 +19,13 @@ import io.github.thirumalx.dto.PageResponse;
 import io.github.thirumalx.service.ApplicationService;
 import jakarta.validation.Valid;
 
-
 /**
  * @author Thirumal
  */
 @RestController
 @RequestMapping("/application")
 public class ApplicationController {
-    
+
     private final ApplicationService applicationService;
 
     public ApplicationController(ApplicationService applicationService) {
@@ -45,9 +45,10 @@ public class ApplicationController {
 
         return ResponseEntity.created(location).body(saved);
     }
-    
+
     @PutMapping("/{id}")
-    public ResponseEntity<Application> updateApplication(@PathVariable Long id, @Valid @RequestBody Application application) {
+    public ResponseEntity<Application> updateApplication(@PathVariable Long id,
+            @Valid @RequestBody Application application) {
         // Save using service
         Application updatedApplication = applicationService.update(id, application);
         return ResponseEntity.ok(updatedApplication);
@@ -57,11 +58,14 @@ public class ApplicationController {
     public ResponseEntity<Application> getApplication(@PathVariable Long id) {
         return ResponseEntity.ok(applicationService.getApplication(id));
     }
-    
 
     @GetMapping("")
     public ResponseEntity<PageResponse<Application>> listApplication(@Valid PageRequest pageRequest) {
         return ResponseEntity.ok(applicationService.listApplication(pageRequest));
     }
-    
+
+    @DeleteMapping("/{id}")
+    public boolean deleteApplication(@PathVariable Long id) {
+        return applicationService.deleteApplication(id);
+    }
 }

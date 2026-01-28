@@ -15,6 +15,7 @@ public class Application {
     private Long id;
     private String applicationName;
     private String uniqueId;
+    private String status;
 
     @Override
     public boolean equals(Object obj) {
