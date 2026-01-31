@@ -5,6 +5,30 @@
 CREATE UNIQUE INDEX IF NOT EXISTS uq_ap_uid_application_uniqueid
 ON certx.ap_uid_application_uniqueid (ap_uid_application_uniqueid);
 
+CREATE OR REPLACE FUNCTION certx.enforce_uid_uniqueness()
+RETURNS trigger AS $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM certx.lap_uid_application_uniqueid
+    WHERE ap_uid_application_uniqueid = NEW.ap_uid_application_uniqueid
+      AND ap_uid_ap_id <> NEW.ap_uid_ap_id
+  ) THEN
+    RAISE EXCEPTION
+      'Application Unique ID % already in use',
+      NEW.ap_uid_application_uniqueid;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+---
+CREATE TRIGGER trg_uid_unique
+BEFORE INSERT ON certx.ap_uid_application_uniqueid
+FOR EACH ROW
+EXECUTE FUNCTION certx.enforce_uid_uniqueness();
+
 ---
 
 --Status Knot
