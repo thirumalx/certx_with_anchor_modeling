@@ -1,5 +1,5 @@
 .application-management {
-  padding: 20px;
+  padding: 20px 20px 10px 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   min-height: 100vh;
   display: flex;
@@ -11,7 +11,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 12px;
 }
@@ -146,9 +146,9 @@
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  /* limit visible rows to approx 3; content scrolls when larger */
+  /* limit visible rows to approx 4; content scrolls when larger */
   --row-height: 56px;
-  max-height: calc(var(--row-height) * 3 + 140px);
+  max-height: calc(var(--row-height) * 5 + 83px);
 }
 
 .applications-table {
