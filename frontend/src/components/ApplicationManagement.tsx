@@ -7,6 +7,8 @@ import {
 import { ApplicationForm } from './ApplicationForm';
 import '../styles/ApplicationManagement.css';
 
+type FilterStatus = 'All' | 'Active' | 'Deleted';
+
 export function ApplicationManagement() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,9 @@ export function ApplicationManagement() {
 
   // Search state
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Filter state
+  const [selectedFilter, setSelectedFilter] = useState<FilterStatus>('All');
 
   // Load applications
   const loadApplications = async (page: number = 0) => {
@@ -121,11 +126,20 @@ export function ApplicationManagement() {
     setError(null);
   };
 
-  // Filter applications based on search term
-  const filteredApplications = applications.filter((app) =>
-    app.applicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter applications based on search term and status
+  const filteredApplications = applications.filter((app) => {
+    const matchesSearch = app.applicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.uniqueId.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (selectedFilter === 'All') {
+      return matchesSearch;
+    } else if (selectedFilter === 'Active') {
+      return matchesSearch && app.status.toLowerCase() === 'active';
+    } else if (selectedFilter === 'Deleted') {
+      return matchesSearch && app.status.toLowerCase() === 'deleted';
+    }
+    return matchesSearch;
+  });
 
   return (
     <div className="application-management">
@@ -142,6 +156,52 @@ export function ApplicationManagement() {
           + New Application
         </button>
       </div>
+
+      <div className="management-container">
+        {/* Left Navigation */}
+        <aside className="left-nav">
+          <nav className="filter-nav">
+            <h3 className="filter-title">Filter</h3>
+            <ul className="filter-list">
+              <li>
+                <button
+                  className={`filter-btn ${selectedFilter === 'All' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedFilter('All');
+                    setCurrentPage(0);
+                  }}
+                >
+                  All
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`filter-btn ${selectedFilter === 'Active' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedFilter('Active');
+                    setCurrentPage(0);
+                  }}
+                >
+                  Active
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`filter-btn ${selectedFilter === 'Deleted' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedFilter('Deleted');
+                    setCurrentPage(0);
+                  }}
+                >
+                  Deleted
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="management-content">
 
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -235,6 +295,8 @@ export function ApplicationManagement() {
           </div>
         </>
       )}
+        </main>
+      </div>
 
       {showForm && (
         <ApplicationForm
