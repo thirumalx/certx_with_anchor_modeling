@@ -45,6 +45,11 @@ public abstract class AnchorDao<T extends Anchor> {
 				.optional();
 	}
 
+	public boolean existsById(Long id) {
+		return jdbc.sql("SELECT COUNT(*) FROM " + tableName + " WHERE " + idColumn + " = :id").param("id", id)
+				.query(Integer.class).single() > 0;
+	}
+
 	protected abstract RowMapper<T> rowMapper();
 
 }

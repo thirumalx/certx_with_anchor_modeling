@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.thirumalx.dao.anchor.ApplicationAnchorDao;
 import io.github.thirumalx.dao.anchor.ClientAnchorDao;
 import io.github.thirumalx.dao.attribute.ClientEmailAttributeDao;
 import io.github.thirumalx.dao.attribute.ClientMobileNumberAttributeDao;
 import io.github.thirumalx.dao.attribute.ClientNameAttributeDao;
 import io.github.thirumalx.dao.attribute.ClientStatusAttributeDao;
+import io.github.thirumalx.dao.tie.ApplicationClientTieDao;
 import io.github.thirumalx.dao.view.ClientViewDao;
 import io.github.thirumalx.dto.Client;
 import io.github.thirumalx.dto.PageRequest;
@@ -32,48 +34,92 @@ public class ClientService {
 
     Logger logger = LoggerFactory.getLogger(ClientService.class);
 
+    //Anchors
     private final ClientAnchorDao clientAnchorDao;
+    private final ApplicationAnchorDao applicationAnchorDao;
+    //Attributes
     private final ClientNameAttributeDao clientNameAttributeDao;
     private final ClientEmailAttributeDao clientEmailAttributeDao;
     private final ClientMobileNumberAttributeDao clientMobileNumberAttributeDao;
     private final ClientStatusAttributeDao clientStatusAttributeDao;
+    //Views
     private final ClientViewDao clientViewDao;
+    //Ties
+    private final ApplicationClientTieDao applicationClientTieDao;
 
     public ClientService(ClientAnchorDao clientAnchorDao,
             ClientNameAttributeDao clientNameAttributeDao,
             ClientEmailAttributeDao clientEmailAttributeDao,
             ClientMobileNumberAttributeDao clientMobileNumberAttributeDao,
             ClientStatusAttributeDao clientStatusAttributeDao,
-            ClientViewDao clientViewDao) {
+            ClientViewDao clientViewDao,
+            ApplicationAnchorDao applicationAnchorDao, ApplicationClientTieDao applicationClientTieDao) {
         this.clientAnchorDao = clientAnchorDao;
         this.clientNameAttributeDao = clientNameAttributeDao;
         this.clientEmailAttributeDao = clientEmailAttributeDao;
         this.clientMobileNumberAttributeDao = clientMobileNumberAttributeDao;
         this.clientStatusAttributeDao = clientStatusAttributeDao;
+        this.applicationClientTieDao = applicationClientTieDao;
         this.clientViewDao = clientViewDao;
+        this.applicationAnchorDao = applicationAnchorDao;
     }
 
     @Transactional
     public Client save(Client client) {
         logger.info("Saving client: {}", client);
+        
+        // Validate Application ID
+        if (client.getApplicationId() == null) {
+            logger.debug("Application ID is required to create a client");
+            throw new IllegalArgumentException("Application ID is required to create a client");
+        }
+        
+        // Check if application exists
+        if (!applicationAnchorDao.existsById(client.getApplicationId())) {
+            logger.error("Application with ID: {} does not exist", client.getApplicationId());
+            throw new ResourceNotFoundException("Application with ID: " + client.getApplicationId() + " does not exist");
+        }
+        logger.debug("Application with ID: {} exists", client.getApplicationId());
+        
+        // Check for client duplication (name/email within the same application)
+        List<Client> existingClients = clientViewDao.listNow(Knot.ACTIVE, 0, Integer.MAX_VALUE);
+        boolean isDuplicate = existingClients.stream()
+            .filter(c -> c.getApplicationId().equals(client.getApplicationId()))
+            .anyMatch(c -> (client.getName() != null && client.getName().equals(c.getName())) ||
+                          (client.getEmail() != null && client.getEmail().equals(c.getEmail())));
+        
+        if (isDuplicate) {
+            logger.error("Client with name: {} or email: {} already exists for application: {}", 
+                client.getName(), client.getEmail(), client.getApplicationId());
+            throw new IllegalArgumentException("Client with name or email already exists for this application");
+        }
+        logger.debug("No duplicate client found for application: {}", client.getApplicationId());
+        
         // Create Client Anchor
         Long clientId = clientAnchorDao.insert(Anchor.METADATA_ACTIVE);
         logger.info("Created client anchor with ID: {}", clientId);
         client.setId(clientId);
+        
         // Add Name
         clientNameAttributeDao.insert(clientId, client.getName(), Attribute.METADATA_ACTIVE);
+        
         // Add Email
         if (client.getEmail() != null) {
             clientEmailAttributeDao.insert(clientId, client.getEmail(), Instant.now(), Attribute.METADATA_ACTIVE);
         }
+        
         // Add Mobile Number
         if (client.getMobileNumber() != null) {
             clientMobileNumberAttributeDao.insert(clientId, client.getMobileNumber(), Instant.now(),
                     Attribute.METADATA_ACTIVE);
         }
+        
         // Add Status (Active)
         clientStatusAttributeDao.insert(clientId, Knot.ACTIVE, Instant.now(), Attribute.METADATA_ACTIVE);
-        return client;
+        // Create Tie between Client and Application
+        applicationClientTieDao.insertHistorized(client.getApplicationId(), clientId, Attribute.METADATA_ACTIVE, Instant.now());
+        logger.info("Client created successfully with ID: {} for application: {}", clientId, client.getApplicationId());
+        return client; 
     }
 
     @Transactional

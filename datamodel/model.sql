@@ -491,12 +491,13 @@ CREATE TABLE IF NOT EXISTS certx.US_accessTo_AP_has (
         AP_ID_has 
     )
 );
--- Static tie table ---------------------------------------------------------------------------------------------------
+-- Historized tie table -----------------------------------------------------------------------------------------------
 -- AP_serves_CL_servedBy table (having 2 roles)
 -----------------------------------------------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS certx.AP_serves_CL_servedBy (
     AP_ID_serves bigint not null, 
     CL_ID_servedBy bigint not null, 
+    AP_serves_CL_servedBy_ChangedAt timestamp not null,
     Metadata_AP_serves_CL_servedBy bigint not null,
     constraint AP_serves_CL_servedBy_fkAP_serves foreign key (
         AP_ID_serves
@@ -506,7 +507,8 @@ CREATE TABLE IF NOT EXISTS certx.AP_serves_CL_servedBy (
     ) references certx.CL_Client(CL_ID), 
     constraint pkAP_serves_CL_servedBy primary key (
         AP_ID_serves ,
-        CL_ID_servedBy 
+        CL_ID_servedBy ,
+        AP_serves_CL_servedBy_ChangedAt 
     )
 );
 -- Static tie table ---------------------------------------------------------------------------------------------------
@@ -2506,8 +2508,8 @@ SELECT current_timestamp
      , '{
    "schema": {
       "format": "0.99.16",
-      "date": "2026-01-31",
-      "time": "20:36:33",
+      "date": "2026-02-11",
+      "time": "13:30:26",
       "metadata": {
          "changingRange": "timestamp",
          "encapsulation": "certx",
@@ -2569,8 +2571,8 @@ SELECT current_timestamp
                "generator": "false"
             },
             "layout": {
-               "x": "900.86",
-               "y": "527.75",
+               "x": "903.88",
+               "y": "544.97",
                "fixed": "false"
             }
          }
@@ -2755,8 +2757,8 @@ SELECT current_timestamp
                "STA"
             ],
             "layout": {
-               "x": "722.50",
-               "y": "516.14",
+               "x": "752.47",
+               "y": "561.70",
                "fixed": "false"
             }
          },
@@ -2782,8 +2784,8 @@ SELECT current_timestamp
                      "deletable": "false"
                   },
                   "layout": {
-                     "x": "1168.30",
-                     "y": "593.73",
+                     "x": "1142.56",
+                     "y": "573.07",
                      "fixed": "false"
                   }
                },
@@ -3147,13 +3149,14 @@ SELECT current_timestamp
                "idempotent": "false"
             },
             "layout": {
-               "x": "604.24",
-               "y": "394.89",
+               "x": "616.82",
+               "y": "439.51",
                "fixed": "false"
             }
          },
          "AP_serves_CL_servedBy": {
             "id": "AP_serves_CL_servedBy",
+            "timeRange": "timestamp",
             "anchorRole": {
                "AP_serves": {
                   "id": "AP_serves",
@@ -3174,12 +3177,13 @@ SELECT current_timestamp
             ],
             "metadata": {
                "capsule": "certx",
+               "restatable": "true",
                "deletable": "false",
                "idempotent": "false"
             },
             "layout": {
-               "x": "945.84",
-               "y": "533.06",
+               "x": "959.60",
+               "y": "560.18",
                "fixed": "false"
             }
          },
