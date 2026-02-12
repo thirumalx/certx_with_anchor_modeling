@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 import io.github.thirumalx.dao.AnchorDao;
+import io.github.thirumalx.dao.columns.AnchorColumns;
 import io.github.thirumalx.model.anchor.ClientAnchor;
 
 /**
@@ -14,12 +15,12 @@ import io.github.thirumalx.model.anchor.ClientAnchor;
 public class ClientAnchorDao extends AnchorDao<ClientAnchor> {
 
     protected ClientAnchorDao(JdbcClient jdbc) {
-        super(jdbc, "certx.cl_client", "cl_id", "metadata_cl");
+        super(jdbc, AnchorColumns.Client.TABLE, AnchorColumns.Client.ID, AnchorColumns.Client.METADATA);
     }
 
     @Override
     protected RowMapper<ClientAnchor> rowMapper() {
-        return (rs, rowNum) -> new ClientAnchor(rs.getLong("cl_id"), rs.getLong("metadata_cl"));
+        return (rs, rowNum) -> new ClientAnchor(rs.getLong(AnchorColumns.Client.ID), rs.getLong(AnchorColumns.Client.METADATA));
     }
 
 }

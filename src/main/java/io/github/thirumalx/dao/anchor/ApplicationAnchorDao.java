@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 import io.github.thirumalx.dao.AnchorDao;
+import io.github.thirumalx.dao.columns.AnchorColumns;
 import io.github.thirumalx.model.anchor.ApplicationAnchor;
 /**
  * @author Thirumal M
@@ -13,12 +14,12 @@ import io.github.thirumalx.model.anchor.ApplicationAnchor;
 public class ApplicationAnchorDao extends AnchorDao<ApplicationAnchor> {
 
     protected ApplicationAnchorDao(JdbcClient jdbc) {
-        super(jdbc, "certx.ap_application", "ap_id", "metadata_ap");
+        super(jdbc, AnchorColumns.Application.TABLE, AnchorColumns.Application.ID, AnchorColumns.Application.METADATA);
     }
 
     @Override
     protected RowMapper<ApplicationAnchor> rowMapper() {
-        return (rs, rowNum) -> new ApplicationAnchor(rs.getLong("ap_id"), rs.getLong("metadata_ap"));
+        return (rs, rowNum) -> new ApplicationAnchor(rs.getLong(AnchorColumns.Application.ID), rs.getLong(AnchorColumns.Application.METADATA));
     }
     
 }

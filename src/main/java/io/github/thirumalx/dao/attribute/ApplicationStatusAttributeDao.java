@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import io.github.thirumalx.dao.AttributeDao;
+import io.github.thirumalx.dao.columns.AttributeColumns;
 import io.github.thirumalx.model.attribute.ApplicationStatusAttribute;
 
 /**
@@ -22,8 +23,8 @@ public class ApplicationStatusAttributeDao extends AttributeDao<ApplicationStatu
     private final JdbcClient jdbc;
 
     protected ApplicationStatusAttributeDao(JdbcClient jdbc) {
-        super(jdbc, "certx.ap_sta_application_status", "ap_sta_ap_id", "ap_sta_sta_id", "ap_sta_changedat",
-                "metadata_ap_sta");
+        super(jdbc, AttributeColumns.ApplicationStatus.TABLE, AttributeColumns.ApplicationStatus.FK, AttributeColumns.ApplicationStatus.VALUE, AttributeColumns.ApplicationStatus.CHANGED_AT,
+                AttributeColumns.ApplicationStatus.METADATA);
         this.jdbc = jdbc;
     }
 
@@ -33,9 +34,9 @@ public class ApplicationStatusAttributeDao extends AttributeDao<ApplicationStatu
     public Map<String, Object> insert(Long anchorId, Long statusId, Instant changedAt, Long metadata) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.sql(
-                "INSERT INTO certx.ap_sta_application_status (ap_sta_ap_id, ap_sta_sta_id, ap_sta_changedat, metadata_ap_sta) "
+                "INSERT INTO " + AttributeColumns.ApplicationStatus.TABLE + " (" + AttributeColumns.ApplicationStatus.FK + ", " + AttributeColumns.ApplicationStatus.VALUE + ", " + AttributeColumns.ApplicationStatus.CHANGED_AT + ", " + AttributeColumns.ApplicationStatus.METADATA + ") "
                         +
-                        "VALUES (:id, :value, :changedAt, :metadata) RETURNING ap_sta_ap_id, ap_sta_changedat")
+                        "VALUES (:id, :value, :changedAt, :metadata) RETURNING " + AttributeColumns.ApplicationStatus.FK + ", " + AttributeColumns.ApplicationStatus.CHANGED_AT)
                 .param("id", anchorId)
                 .param("value", statusId)
                 .param("changedAt", java.sql.Timestamp.from(changedAt))
@@ -47,10 +48,10 @@ public class ApplicationStatusAttributeDao extends AttributeDao<ApplicationStatu
     @Override
     protected RowMapper<ApplicationStatusAttribute> rowMapper() {
         return (rs, rowNum) -> ApplicationStatusAttribute.builder()
-                .apStaApId(rs.getLong("ap_sta_ap_id"))
-                .apStaStaId(rs.getLong("ap_sta_sta_id"))
-                .apStaChangedAt(rs.getObject("ap_sta_changedat", OffsetDateTime.class).toInstant())
-                .metadataApSta(rs.getLong("metadata_ap_sta"))
+                .apStaApId(rs.getLong(AttributeColumns.ApplicationStatus.FK))
+                .apStaStaId(rs.getLong(AttributeColumns.ApplicationStatus.VALUE))
+                .apStaChangedAt(rs.getObject(AttributeColumns.ApplicationStatus.CHANGED_AT, OffsetDateTime.class).toInstant())
+                .metadataApSta(rs.getLong(AttributeColumns.ApplicationStatus.METADATA))
                 .build();
     }
 }

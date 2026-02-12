@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import io.github.thirumalx.dao.AttributeDao;
+import io.github.thirumalx.dao.columns.AttributeColumns;
 import io.github.thirumalx.model.attribute.ClientStatusAttribute;
 
 /**
@@ -22,8 +23,8 @@ public class ClientStatusAttributeDao extends AttributeDao<ClientStatusAttribute
     private final JdbcClient jdbc;
 
     protected ClientStatusAttributeDao(JdbcClient jdbc) {
-        super(jdbc, "certx.cl_sta_client_status", "cl_sta_cl_id", "cl_sta_sta_id", "cl_sta_changedat",
-                "metadata_cl_sta");
+        super(jdbc, AttributeColumns.ClientStatus.TABLE, AttributeColumns.ClientStatus.FK, AttributeColumns.ClientStatus.VALUE, AttributeColumns.ClientStatus.CHANGED_AT,
+                AttributeColumns.ClientStatus.METADATA);
         this.jdbc = jdbc;
     }
 
@@ -33,9 +34,9 @@ public class ClientStatusAttributeDao extends AttributeDao<ClientStatusAttribute
     public Map<String, Object> insert(Long anchorId, Long statusId, Instant changedAt, Long metadata) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.sql(
-                "INSERT INTO certx.cl_sta_client_status (cl_sta_cl_id, cl_sta_sta_id, cl_sta_changedat, metadata_cl_sta) "
+                "INSERT INTO " + AttributeColumns.ClientStatus.TABLE + " (" + AttributeColumns.ClientStatus.FK + ", " + AttributeColumns.ClientStatus.VALUE + ", " + AttributeColumns.ClientStatus.CHANGED_AT + ", " + AttributeColumns.ClientStatus.METADATA + ") "
                         +
-                        "VALUES (:id, :value, :changedAt, :metadata) RETURNING cl_sta_cl_id, cl_sta_changedat")
+                        "VALUES (:id, :value, :changedAt, :metadata) RETURNING " + AttributeColumns.ClientStatus.FK + ", " + AttributeColumns.ClientStatus.CHANGED_AT)
                 .param("id", anchorId)
                 .param("value", statusId)
                 .param("changedAt", java.sql.Timestamp.from(changedAt))
@@ -47,10 +48,10 @@ public class ClientStatusAttributeDao extends AttributeDao<ClientStatusAttribute
     @Override
     protected RowMapper<ClientStatusAttribute> rowMapper() {
         return (rs, rowNum) -> ClientStatusAttribute.builder()
-                .id(rs.getLong("cl_sta_cl_id"))
-                .knotId(rs.getLong("cl_sta_sta_id"))
-                .changedAt(rs.getObject("cl_sta_changedat", OffsetDateTime.class).toInstant())
-                .metadata(rs.getLong("metadata_cl_sta"))
+                .id(rs.getLong(AttributeColumns.ClientStatus.FK))
+                .knotId(rs.getLong(AttributeColumns.ClientStatus.VALUE))
+                .changedAt(rs.getObject(AttributeColumns.ClientStatus.CHANGED_AT, OffsetDateTime.class).toInstant())
+                .metadata(rs.getLong(AttributeColumns.ClientStatus.METADATA))
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 import io.github.thirumalx.dao.AttributeDao;
+import io.github.thirumalx.dao.columns.AttributeColumns;
 import io.github.thirumalx.model.attribute.ClientEmailAttribute;
 
 /**
@@ -16,17 +17,17 @@ import io.github.thirumalx.model.attribute.ClientEmailAttribute;
 public class ClientEmailAttributeDao extends AttributeDao<ClientEmailAttribute> {
 
     protected ClientEmailAttributeDao(JdbcClient jdbc) {
-        super(jdbc, "certx.cl_eid_client_email", "cl_eid_cl_id", "cl_eid_client_email", "cl_eid_changedat",
-                "metadata_cl_eid");
+        super(jdbc, AttributeColumns.ClientEmail.TABLE, AttributeColumns.ClientEmail.FK, AttributeColumns.ClientEmail.VALUE, AttributeColumns.ClientEmail.CHANGED_AT,
+                AttributeColumns.ClientEmail.METADATA);
     }
 
     @Override
     protected RowMapper<ClientEmailAttribute> rowMapper() {
         return (rs, rowNum) -> ClientEmailAttribute.builder()
-                .id(rs.getLong("cl_eid_cl_id"))
-                .email(rs.getString("cl_eid_client_email"))
-                .changedAt(rs.getObject("cl_eid_changedat", OffsetDateTime.class).toInstant())
-                .metadata(rs.getLong("metadata_cl_eid"))
+                .id(rs.getLong(AttributeColumns.ClientEmail.FK))
+                .email(rs.getString(AttributeColumns.ClientEmail.VALUE))
+                .changedAt(rs.getObject(AttributeColumns.ClientEmail.CHANGED_AT, OffsetDateTime.class).toInstant())
+                .metadata(rs.getLong(AttributeColumns.ClientEmail.METADATA))
                 .build();
     }
 }

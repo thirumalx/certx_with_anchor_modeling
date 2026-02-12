@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
  * @author Thirumal
  */
 @RestController
-@RequestMapping("/client")
+@RequestMapping("/application/{applicationId}/client")
 public class ClientController {
 
     private final ClientService clientService;
@@ -32,8 +32,9 @@ public class ClientController {
         this.clientService = clientService;
     }
 
-    @PostMapping("")
-    public ResponseEntity<Client> saveClient(@Valid @RequestBody Client client) {
+    @PostMapping()
+    public ResponseEntity<Client> saveClient(@PathVariable Long applicationId, @Valid @RequestBody Client client) {
+        client.setApplicationId(applicationId);
         Client saved = clientService.save(client);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -45,24 +46,24 @@ public class ClientController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id,
+    public ResponseEntity<Client> updateClient(@PathVariable Long applicationId, @PathVariable Long id,
             @Valid @RequestBody Client client) {
-        Client updatedClient = clientService.update(id, client);
+        Client updatedClient = clientService.update(applicationId, id, client); 
         return ResponseEntity.ok(updatedClient);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Client> getClient(@PathVariable Long id) {
-        return ResponseEntity.ok(clientService.getClient(id));
+    public ResponseEntity<Client> getClient(@PathVariable Long applicationId, @PathVariable Long id) {
+        return ResponseEntity.ok(clientService.getClient(applicationId, id));
     }
 
-    @GetMapping("")
-    public ResponseEntity<PageResponse<Client>> listClient(@Valid PageRequest pageRequest) {
-        return ResponseEntity.ok(clientService.listClient(pageRequest));
+    @GetMapping()
+    public ResponseEntity<PageResponse<Client>> listClient(@PathVariable Long applicationId, @Valid PageRequest pageRequest) {
+        return ResponseEntity.ok(clientService.listClient(applicationId, pageRequest));
     }
 
     @DeleteMapping("/{id}")
-    public boolean deleteClient(@PathVariable Long id) {
-        return clientService.deleteClient(id);
+    public boolean deleteClient(@PathVariable Long applicationId, @PathVariable Long id) {
+        return clientService.deleteClient(applicationId, id);
     }
 }

@@ -66,7 +66,7 @@ public class ClientService {
 
     @Transactional
     public Client save(Client client) {
-        logger.info("Saving client: {}", client);
+        logger.info("Saving client: {} for the application {}", client, client.getApplicationId());
         
         // Validate Application ID
         if (client.getApplicationId() == null) {
@@ -123,9 +123,9 @@ public class ClientService {
     }
 
     @Transactional
-    public Client update(Long id, @Valid Client client) {
+    public Client update(Long applicationId, Long id, @Valid Client client) {
         logger.debug("Initiated Updating client {} with details {}", id, client);
-        Client existingClient = getClient(id);
+        Client existingClient = getClient(applicationId, id);
         if (existingClient == null) {
             logger.debug("Client with ID: {} not found for update", id);
             throw new ResourceNotFoundException("Client not found for update");
@@ -149,11 +149,11 @@ public class ClientService {
             clientMobileNumberAttributeDao.insert(id, client.getMobileNumber(), Instant.now(),
                     Attribute.METADATA_ACTIVE);
         }
-        return getClient(id);
+        return getClient(applicationId, id);
     }
 
-    public Client getClient(Long id) {
-        logger.info("Fetching client with ID: {}", id);
+    public Client getClient(Long applicationId, Long id) {
+        logger.info("Fetching client with ID: {} for application: {}", id, applicationId);
         Optional<Client> clientOptional = clientViewDao.findNowById(id);
         if (clientOptional.isEmpty()) {
             logger.debug("Client with ID: {} not found", id);
@@ -162,8 +162,8 @@ public class ClientService {
         return clientOptional.get();
     }
 
-    public PageResponse<Client> listClient(PageRequest pageRequest) {
-        logger.debug("Listing clients for page {} with size {}", pageRequest.page(), pageRequest.size());
+    public PageResponse<Client> listClient(Long applicationId, PageRequest pageRequest) {
+        logger.debug("Listing clients for the application {} from page {} with size {}", applicationId, pageRequest.page(), pageRequest.size());
         List<Client> clients = clientViewDao.listNow(Knot.ACTIVE, pageRequest.page(),
                 pageRequest.size());
         long totalElements = clientViewDao.countNow(Knot.ACTIVE);
@@ -171,9 +171,9 @@ public class ClientService {
         return new PageResponse<>(pageRequest.page(), pageRequest.size(), clients, totalElements, totalPages);
     }
 
-    public boolean deleteClient(Long id) {
-        logger.info("Deleting client with ID: {}", id);
-        Client existingClient = getClient(id);
+    public boolean deleteClient(Long applicationId, Long id) {
+        logger.info("Deleting client with ID: {} for application: {}", id, applicationId);
+        Client existingClient = getClient(applicationId, id);
         if (existingClient == null) {
             logger.debug("Client with ID: {} not found for deletion", id);
             throw new ResourceNotFoundException("Client not found for deletion");

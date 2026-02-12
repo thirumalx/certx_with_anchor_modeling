@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 import io.github.thirumalx.dao.AttributeDao;
+import io.github.thirumalx.dao.columns.AttributeColumns;
 import io.github.thirumalx.model.attribute.ApplicationUniqueIdAttribute;
 
 /**
@@ -14,17 +15,17 @@ import io.github.thirumalx.model.attribute.ApplicationUniqueIdAttribute;
 public class ApplicationUniqueIdAttributeDao extends AttributeDao<ApplicationUniqueIdAttribute> {
 
     protected ApplicationUniqueIdAttributeDao(JdbcClient jdbc) {
-        super(jdbc, "certx.ap_uid_application_uniqueid", "ap_uid_ap_id", "ap_uid_application_uniqueid",
-                "ap_uid_changedat", "metadata_ap_uid");
+        super(jdbc, AttributeColumns.ApplicationUniqueId.TABLE, AttributeColumns.ApplicationUniqueId.FK, AttributeColumns.ApplicationUniqueId.VALUE,
+                AttributeColumns.ApplicationUniqueId.CHANGED_AT, AttributeColumns.ApplicationUniqueId.METADATA);
     }
 
     @Override
     protected RowMapper<ApplicationUniqueIdAttribute> rowMapper() {
         return (rs, rowNum) -> new ApplicationUniqueIdAttribute(
-                rs.getLong("ap_uid_ap_id"),
-                rs.getString("ap_uid_application_uniqueid"),
-                rs.getLong("metadata_ap_uid"),
-                rs.getTimestamp("ap_uid_changedat").toInstant());
+                rs.getLong(AttributeColumns.ApplicationUniqueId.FK),
+                rs.getString(AttributeColumns.ApplicationUniqueId.VALUE),
+                rs.getLong(AttributeColumns.ApplicationUniqueId.METADATA),
+                rs.getTimestamp(AttributeColumns.ApplicationUniqueId.CHANGED_AT).toInstant());
     }
 
 }
